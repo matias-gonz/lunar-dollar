@@ -6,7 +6,7 @@ import DA.Set qualified as Set (fromList)
 
 -- INTERFACE DEPENDENCIES --
 import Daml.Finance.Interface.Account.V4.Factory qualified as AccountFactory (I)
-import Daml.Finance.Interface.Types.Common.V3.Types (Id(..))
+import Daml.Finance.Interface.Types.Common.V3.Types (Id(..), HoldingStandard(..), InstrumentKey(..))
 
 -- IMPLEMENTATION DEPENDENCIES --
 import Daml.Finance.Account.V4.Account qualified as Account (Factory(..))
@@ -29,5 +29,16 @@ setup = script do
   
   aliceAccountCid <- createBankAccount bank holdingFactory accountFactoryCid alice "Alice's Account"
   bobAccountCid <- createBankAccount bank holdingFactory accountFactoryCid bob "Bob's Account"
+
+  let
+    instrumentId = Id "LNRD"
+    instrumentVersion = "0"
+    instrumentKey = InstrumentKey with
+      issuer = bank
+      depository = bank
+      id = instrumentId
+      version = instrumentVersion
+      holdingStandard = TransferableFungible
+  now <- getTime
 
   pure ()

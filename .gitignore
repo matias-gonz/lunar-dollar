@@ -1,2 +1,4 @@
 .daml/
 .vscode/
+log/
+navigator.log
