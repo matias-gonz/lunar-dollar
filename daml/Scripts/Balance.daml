@@ -3,6 +3,7 @@ module Scripts.Balance where
 import Daml.Script
 import DA.Foldable (forA_)
 import DA.Optional (fromSome)
+import DA.List (groupOn, head)
 
 import Daml.Finance.Interface.Holding.V4.Holding qualified as Holding (I, View(..))
 import Daml.Finance.Interface.Types.Common.V3.Types (Id(..))
@@ -17,9 +18,12 @@ balance args = do
   party <- lookupParty args.party
 
   holdings <- queryInterface @Holding.I party
+  let views = map (\(_, optView) -> fromSome optView : Holding.View) holdings
 
-  debug $ "=== Holdings for " <> args.party <> " ==="
-  forA_ holdings $ \(_, optView) -> do
-    let v : Holding.View = fromSome optView
-    let Id instrumentName = v.instrument.id
-    debug $ show v.amount <> " " <> instrumentName
+  let grouped = groupOn (\v -> v.instrument.id) views
+  
+  debug $ "=== Balances for " <> args.party <> " ==="
+  forA_ grouped $ \group -> do
+    let total = foldl (\acc v -> acc + v.amount) 0.0 group
+    let Id instrumentName = (head group).instrument.id
+    debug $ show total <> " " <> instrumentName <> " (" <> show (length group) <> " holdings)"
