@@ -12,6 +12,14 @@ import Daml.Finance.Holding.V4.Factory qualified as Holding (Factory(..))
 
 import Workflow.CreateAccount qualified as CreateAccount (Accept(..), Request(..))
 
+-- | Looks up an existing party by display name.
+lookupParty : Text -> Script Party
+lookupParty name = do
+  parties <- listKnownParties
+  case filter (\p -> p.displayName == Some name) parties of
+    (p :: _) -> pure p.party
+    [] -> fail $ "Party not found: " <> name
+
 -- | Creates a user + party given a hint.
 createParty : Text -> Script Party
 createParty name = do

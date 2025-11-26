@@ -1,0 +1,40 @@
+module Scripts.Mint where
+
+import Daml.Script
+
+import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey(..), Id(..), HoldingStandard(..), InstrumentKey(..))
+
+import Scripts.Util (lookupParty)
+import Workflow.CreditAccount qualified as CreditAccount
+
+data MintArgs = MintArgs with
+  recipient : Text
+  amount : Decimal
+
+mint : MintArgs -> Script ()
+mint args = do
+  bank <- lookupParty "Bank"
+  recipient <- lookupParty args.recipient
+
+  let
+    account = AccountKey with
+      custodian = bank
+      owner = recipient
+      id = Id (args.recipient <> "'s Account")
+    instrument = InstrumentKey with
+      issuer = bank
+      depository = bank
+      id = Id "LNRD"
+      version = "0"
+      holdingStandard = TransferableFungible
+
+  requestCid <- submit recipient do
+    createCmd CreditAccount.Request with
+      account
+      instrument
+      amount = args.amount
+
+  submit bank do
+    exerciseCmd requestCid CreditAccount.Accept
+
+  debug $ "Minted " <> show args.amount <> " LNRD to " <> args.recipient
