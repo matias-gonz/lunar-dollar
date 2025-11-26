@@ -1,0 +1,25 @@
+module Scripts.Balance where
+
+import Daml.Script
+import DA.Foldable (forA_)
+import DA.Optional (fromSome)
+
+import Daml.Finance.Interface.Holding.V4.Holding qualified as Holding (I, View(..))
+import Daml.Finance.Interface.Types.Common.V3.Types (Id(..))
+
+import Scripts.Util (lookupParty)
+
+data BalanceArgs = BalanceArgs with
+  party : Text
+
+balance : BalanceArgs -> Script ()
+balance args = do
+  party <- lookupParty args.party
+
+  holdings <- queryInterface @Holding.I party
+
+  debug $ "=== Holdings for " <> args.party <> " ==="
+  forA_ holdings $ \(_, optView) -> do
+    let v : Holding.View = fromSome optView
+    let Id instrumentName = v.instrument.id
+    debug $ show v.amount <> " " <> instrumentName
