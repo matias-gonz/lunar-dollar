@@ -12,7 +12,7 @@ import Daml.Finance.Interface.Types.Common.V3.Types (Id(..))
 import Daml.Finance.Account.V4.Account qualified as Account (Factory(..))
 import Daml.Finance.Holding.V4.Factory qualified as Holding (Factory(..))
 
-import Scripts.Util (createHoldingFactory, createParty)
+import Scripts.Util (createHoldingFactory, createParty, createBankAccount)
 
 setup = script do
   [bank, alice, bob] <- mapA createParty ["Bank", "Alice", "Bob"]
@@ -26,5 +26,8 @@ setup = script do
       provider = bank
       id = Id "Holding Factory"
       observers = Map.fromList [("Settlers", Set.fromList [alice, bob])]
+  
+  aliceAccountCid <- createBankAccount bank holdingFactory accountFactoryCid alice "Alice's Account"
+  bobAccountCid <- createBankAccount bank holdingFactory accountFactoryCid bob "Bob's Account"
 
   pure ()

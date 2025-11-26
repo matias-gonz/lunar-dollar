@@ -3,11 +3,14 @@ module Scripts.Util where
 import Daml.Script
 
 -- INTERFACE DEPENDENCIES --
+import Daml.Finance.Interface.Account.V4.Factory qualified as AccountFactory (I)
 import Daml.Finance.Interface.Holding.V4.Factory qualified as HoldingFactory (I, Reference(..))
-import Daml.Finance.Interface.Types.Common.V3.Types (HoldingFactoryKey(..))
+import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey, HoldingFactoryKey(..))
 
 -- IMPLEMENTATION DEPENDENCIES --
 import Daml.Finance.Holding.V4.Factory qualified as Holding (Factory(..))
+
+import Workflow.CreateAccount qualified as CreateAccount (Accept(..), Request(..))
 
 -- | Creates a user + party given a hint.
 createParty : Text -> Script Party
@@ -29,3 +32,20 @@ createHoldingFactory holdingFactory = do
       cid
       observers = holdingFactory.observers
   pure $ HoldingFactoryKey with provider = holdingFactory.provider; id = holdingFactory.id
+
+createBankAccount : Party -> HoldingFactoryKey -> ContractId AccountFactory.I -> Party -> Text  -> Script AccountKey
+createBankAccount accountProvider holdingFactory accountFactoryCid accountHolder id = do
+  requestCid <- submit accountHolder do
+    createCmd CreateAccount.Request with
+      owner = accountHolder
+      custodian = accountProvider
+  
+  accountKey <- submit accountProvider do
+    exerciseCmd requestCid CreateAccount.Accept with
+      label = id
+      description = id
+      accountFactoryCid
+      holdingFactory
+      observers = []
+  
+  pure accountKey
