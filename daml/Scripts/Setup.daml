@@ -1,0 +1,30 @@
+module Scripts.Setup where
+
+import Daml.Script
+import DA.Map qualified as Map (fromList)
+import DA.Set qualified as Set (fromList)
+
+-- INTERFACE DEPENDENCIES --
+import Daml.Finance.Interface.Account.V4.Factory qualified as AccountFactory (I)
+import Daml.Finance.Interface.Types.Common.V3.Types (Id(..))
+
+-- IMPLEMENTATION DEPENDENCIES --
+import Daml.Finance.Account.V4.Account qualified as Account (Factory(..))
+import Daml.Finance.Holding.V4.Factory qualified as Holding (Factory(..))
+
+import Scripts.Util (createHoldingFactory, createParty)
+
+setup = script do
+  [bank, alice, bob] <- mapA createParty ["Bank", "Alice", "Bob"]
+  accountFactoryCid <- toInterfaceContractId @AccountFactory.I <$> submit bank do
+    createCmd Account.Factory with
+      provider = bank
+      observers = mempty
+  
+  holdingFactory <- createHoldingFactory
+    Holding.Factory with
+      provider = bank
+      id = Id "Holding Factory"
+      observers = Map.fromList [("Settlers", Set.fromList [alice, bob])]
+
+  pure ()
