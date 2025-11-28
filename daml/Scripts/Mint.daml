@@ -4,8 +4,8 @@ import Daml.Script
 
 import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey(..), Id(..), HoldingStandard(..), InstrumentKey(..))
 
+import LunarDollar qualified
 import Scripts.Util (lookupParty)
-import Workflow.CreditAccount qualified as CreditAccount
 
 data MintArgs = MintArgs with
   recipient : Text
@@ -17,24 +17,22 @@ mint args = do
   recipient <- lookupParty args.recipient
 
   let
-    account = AccountKey with
+    recipientAccount = AccountKey with
       custodian = bank
       owner = recipient
       id = Id (args.recipient <> "'s Account")
-    instrument = InstrumentKey with
+    instrumentKey = InstrumentKey with
       issuer = bank
       depository = bank
       id = Id "LNRD"
       version = "0"
       holdingStandard = TransferableFungible
 
-  requestCid <- submit recipient do
-    createCmd CreditAccount.Request with
-      account
-      instrument
-      amount = args.amount
+  Some (cid, _) <- queryContractKey @LunarDollar.LunarDollar bank (bank, Id "LNRD", "0")
 
-  submit bank do
-    exerciseCmd requestCid CreditAccount.Accept
+  submitMulti [bank, recipient] [] do
+    exerciseCmd cid LunarDollar.Mint with
+      amount = args.amount
+      recipientAccount
 
   debug $ "Minted " <> show args.amount <> " LNRD to " <> args.recipient
