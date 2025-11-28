@@ -1,0 +1,14 @@
+module LunarDollar where
+
+import Daml.Finance.Interface.Types.Common.V3.Types (Id, InstrumentKey)
+
+template LunarDollar with
+    instrumentKey : InstrumentKey
+
+  where
+    signatory instrumentKey.issuer
+    observer instrumentKey.depository
+
+    key (instrumentKey.issuer, instrumentKey.id, instrumentKey.version) : (Party, Id, Text)
+    maintainer key._1
+
