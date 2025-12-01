@@ -2,16 +2,17 @@ module Scripts.Mint where
 
 import Daml.Script
 
-import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey(..), Id(..), HoldingStandard(..), InstrumentKey(..))
+import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey(..), Id(..))
+import Daml.Finance.Interface.Holding.V4.Holding qualified as Holding (I)
 
 import LunarDollar qualified
-import Scripts.Util (lookupParty)
+import Scripts.Util (lookupParty, getLNRD)
 
 data MintArgs = MintArgs with
   recipient : Text
   amount : Decimal
 
-mint : MintArgs -> Script ()
+mint : MintArgs -> Script (ContractId Holding.I)
 mint args = do
   bank <- lookupParty "Bank"
   recipient <- lookupParty args.recipient
@@ -21,18 +22,14 @@ mint args = do
       custodian = bank
       owner = recipient
       id = Id (args.recipient <> "'s Account")
-    instrumentKey = InstrumentKey with
-      issuer = bank
-      depository = bank
-      id = Id "LNRD"
-      version = "0"
-      holdingStandard = TransferableFungible
 
-  Some (cid, _) <- queryContractKey @LunarDollar.LunarDollar bank (bank, Id "LNRD", "0")
-
-  submitMulti [bank, recipient] [] do
-    exerciseCmd cid LunarDollar.Mint with
+  (lnrdCid, _) <- getLNRD
+  
+  holdingCid <- submitMulti [bank, recipient] [] do
+    exerciseCmd lnrdCid LunarDollar.Mint with
       amount = args.amount
       recipientAccount
 
-  debug $ "Minted " <> show args.amount <> " LNRD to " <> args.recipient
+  debug $ "Minted " <> show args.amount <> " LNRD to " <> args.recipient <> " as holding " <> show holdingCid
+
+  pure holdingCid

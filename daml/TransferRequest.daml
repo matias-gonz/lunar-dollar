@@ -1,4 +1,4 @@
-module Workflow.Transfer where
+module TransferRequest where
 
 import DA.Assert ((===))
 import DA.Set (fromList)
@@ -10,7 +10,7 @@ import Daml.Finance.Interface.Holding.V4.Util (getAmount, getInstrument)
 import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey(..), InstrumentKey)
 
 -- | Initiate / Accept template to transfer a holding to a new owner.
-template Request
+template TransferRequest
   with
     receiverAccount : AccountKey
       -- ^ The account where the holding is sent.

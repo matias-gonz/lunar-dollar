@@ -38,3 +38,13 @@ daml script --dar .daml/dist/lunares-1.0.0.dar \
   <<< '{"party": "Alice"}'
 ```
 
+## Create Transfer Request
+
+```bash
+daml script --dar .daml/dist/lunares-1.0.0.dar \
+  --script-name Scripts.Transfer:createTransferRequest \
+  --input-file /dev/stdin \
+  --ledger-host localhost --ledger-port 6865 \
+  <<< '{"sender": "Alice", "receiver": "Bob", "amount": "100.0"}'
+```
+

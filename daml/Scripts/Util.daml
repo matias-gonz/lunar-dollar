@@ -5,7 +5,8 @@ import Daml.Script
 -- INTERFACE DEPENDENCIES --
 import Daml.Finance.Interface.Account.V4.Factory qualified as AccountFactory (I)
 import Daml.Finance.Interface.Holding.V4.Factory qualified as HoldingFactory (I, Reference(..))
-import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey, HoldingFactoryKey(..))
+import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey, HoldingFactoryKey(..), Id(..))
+import LunarDollar qualified
 
 -- IMPLEMENTATION DEPENDENCIES --
 import Daml.Finance.Holding.V4.Factory qualified as Holding (Factory(..))
@@ -27,6 +28,12 @@ createParty name = do
   userId <- validateUserId name
   createUser (User userId (Some party)) [CanActAs party]
   pure party
+
+getLNRD : Script (ContractId LunarDollar.LunarDollar, LunarDollar.LunarDollar)
+getLNRD = do
+  bank <- lookupParty "Bank"
+  Some (cid, lunarDollar) <- queryContractKey @LunarDollar.LunarDollar bank (bank, Id "LNRD", "0")
+  pure (cid, lunarDollar)
 
 -- | Create a holding factory as well as the companion `Reference` template, that is explained here:
 -- https://docs.daml.com/daml-finance/reference/patterns.html#reference-pattern
