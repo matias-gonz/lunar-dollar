@@ -28,3 +28,13 @@ daml script --dar .daml/dist/lunares-1.0.0.dar \
   <<< '{"party": "Alice"}'
 ```
 
+## Merge Holdings
+
+```bash
+daml script --dar .daml/dist/lunares-1.0.0.dar \
+  --script-name Scripts.Merge:merge \
+  --input-file /dev/stdin \
+  --ledger-host localhost --ledger-port 6865 \
+  <<< '{"party": "Alice"}'
+```
+
