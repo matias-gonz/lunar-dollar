@@ -48,8 +48,8 @@ createHoldingFactory holdingFactory = do
       observers = holdingFactory.observers
   pure $ HoldingFactoryKey with provider = holdingFactory.provider; id = holdingFactory.id
 
-createBankAccount : Party -> HoldingFactoryKey -> ContractId AccountFactory.I -> Party -> Text  -> Script AccountKey
-createBankAccount accountProvider holdingFactory accountFactoryCid accountHolder id = do
+createBankAccount : Party -> HoldingFactoryKey -> ContractId AccountFactory.I -> Party -> Text -> [Party] -> Script AccountKey
+createBankAccount accountProvider holdingFactory accountFactoryCid accountHolder id observers = do
   requestCid <- submit accountHolder do
     createCmd CreateAccount.Request with
       owner = accountHolder
@@ -61,6 +61,6 @@ createBankAccount accountProvider holdingFactory accountFactoryCid accountHolder
       description = id
       accountFactoryCid
       holdingFactory
-      observers = []
+      observers
   
   pure accountKey

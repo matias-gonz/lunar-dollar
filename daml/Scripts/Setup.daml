@@ -37,8 +37,8 @@ setup = script do
       provider = bank
       observers = mempty
   
-  aliceAccountCid <- createBankAccount bank holdingFactory accountFactoryCid alice "Alice's Account"
-  bobAccountCid <- createBankAccount bank holdingFactory accountFactoryCid bob "Bob's Account"
+  aliceAccountCid <- createBankAccount bank holdingFactory accountFactoryCid alice "Alice's Account" []
+  bobAccountCid <- createBankAccount bank holdingFactory accountFactoryCid bob "Bob's Account" []
 
   let
     instrumentId = Id "LNRD"

@@ -29,7 +29,7 @@ template TransferRequest
     choice Accept : ContractId Holding.I
       with
         holdingCid : ContractId Holding.I
-      controller currentOwner
+      controller currentOwner, receiverAccount.owner
       do
         -- Sanity checks
         holding <- fetch holdingCid

@@ -3,9 +3,10 @@ module Scripts.Transfer where
 import Daml.Script
 
 import Daml.Finance.Interface.Types.Common.V3.Types (AccountKey(..), Id(..))
+import Daml.Finance.Interface.Holding.V4.Holding qualified as Holding (I)
 
 import Scripts.Util (lookupParty, getLNRD)
-import TransferRequest (TransferRequest(..))
+import TransferRequest (TransferRequest(..), Accept(..))
 
 data CreateTransferRequestArgs = CreateTransferRequestArgs with
   sender : Text
@@ -37,4 +38,22 @@ createTransferRequest args = do
   debug $ "Created transfer request " <> show requestCid <> " from " <> args.sender <> " to " <> args.receiver <> " for " <> show args.amount <> " LNRD"
   
   pure requestCid
+
+data AcceptTransferRequestArgs = AcceptTransferRequestArgs with
+  sender : Text
+  receiver : Text
+  requestCid : ContractId TransferRequest.TransferRequest
+  holdingCid : ContractId Holding.I
+
+acceptTransferRequest : AcceptTransferRequestArgs -> Script (ContractId Holding.I)
+acceptTransferRequest args = do
+  sender <- lookupParty args.sender
+  receiver <- lookupParty args.receiver
+  newHoldingCid <- submitMulti [sender, receiver] [] do
+    exerciseCmd args.requestCid TransferRequest.Accept with
+      holdingCid = args.holdingCid
+
+  debug $ "Accepted transfer request from " <> args.sender <> " to " <> args.receiver
+  
+  pure newHoldingCid
   

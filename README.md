@@ -48,3 +48,21 @@ daml script --dar .daml/dist/lunares-1.0.0.dar \
   <<< '{"sender": "Alice", "receiver": "Bob", "amount": "100.0"}'
 ```
 
+## Accept Transfer Request
+
+```bash
+daml script --dar .daml/dist/lunares-1.0.0.dar \
+  --script-name Scripts.Transfer:acceptTransferRequest \
+  --input-file /dev/stdin \
+  --ledger-host localhost --ledger-port 6865 \
+  <<< '{"sender": "Alice", "receiver": "Bob", "requestCid": "<REQUEST_CID>", "holdingCid": "<HOLDING_CID>"}'
+```
+
+## Test Transfer Flow
+
+```bash
+daml script --dar .daml/dist/lunares-1.0.0.dar \
+  --script-name Tests.Tests:testTransferFlow \
+  --ledger-host localhost --ledger-port 6865
+```
+
