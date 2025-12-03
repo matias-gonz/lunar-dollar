@@ -6,8 +6,8 @@ import Scripts.Mint (MintArgs(..), mint)
 import Scripts.Transfer (CreateTransferRequestArgs(..), AcceptTransferRequestArgs(..), createTransferRequest, acceptTransferRequest)
 import Scripts.Balance (BalanceArgs(..), balance)
 
-testTransferFlow : Script ()
-testTransferFlow = do
+testTransferExactAmount : Script ()
+testTransferExactAmount = do
   holdingCid <- mint MintArgs with
     recipient = "Alice"
     amount = 100.0
@@ -16,6 +16,28 @@ testTransferFlow = do
     sender = "Alice"
     receiver = "Bob"
     amount = 100.0
+
+  _ <- acceptTransferRequest AcceptTransferRequestArgs with
+    sender = "Alice"
+    receiver = "Bob"
+    requestCid
+    holdingCid
+
+  balance BalanceArgs with party = "Alice"
+  balance BalanceArgs with party = "Bob"
+
+  pure ()
+
+testTransferWithSplit : Script ()
+testTransferWithSplit = do
+  holdingCid <- mint MintArgs with
+    recipient = "Alice"
+    amount = 500.0
+
+  requestCid <- createTransferRequest CreateTransferRequestArgs with
+    sender = "Alice"
+    receiver = "Bob"
+    amount = 200.0
 
   _ <- acceptTransferRequest AcceptTransferRequestArgs with
     sender = "Alice"
